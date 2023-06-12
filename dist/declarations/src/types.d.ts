@@ -7,3 +7,21 @@ export type MaterialNode = {
     nodes?: MaterialNode[];
     ref?: number;
 };
+export type MoveOperation = {
+    kind: "move";
+    node: MaterialNode;
+    srcNodes: MaterialNode[];
+    dstNodes: MaterialNode[];
+    index: number;
+};
+export type HideOperation = {
+    kind: "hide";
+    node: MaterialNode;
+};
+export type AddOperation = {
+    kind: "add";
+    node: MaterialNode;
+    dstNodes: MaterialNode[];
+    index: number;
+};
+export type TreeOperation = AddOperation | MoveOperation | HideOperation;
