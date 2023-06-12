@@ -1,7 +1,7 @@
 {
-  "name": "tree-edit-diff",
-  "version": "0.1.0-alpha",
-  "description": "diffs 2 trees and patches the 2nd one",
+  "name": "@sweetacid/tree-diff",
+  "version": "0.2.0-alpha",
+  "description": "diff but for trees",
   "main": "dist/tree-edit-diff.cjs.js",
   "module": "dist/tree-edit-diff.esm.js",
   "scripts": {
