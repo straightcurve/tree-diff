@@ -90,7 +90,10 @@ function hide(node) {
 }
 function recFind(root, predicate, parent) {
   if (!root) return undefined;
-  if (predicate(root, parent)) return root;
+  if (predicate(root, parent)) return {
+    node: root,
+    parent: parent
+  };
   if (!root.nodes) return undefined;
   var _iterator = _createForOfIteratorHelper(root.nodes),
     _step;
@@ -137,10 +140,12 @@ function internalDiff(src, dst) {
           index: i + skip - 1
         });
       } else {
+        var _existing$parent;
+        if (!((_existing$parent = existing.parent) !== null && _existing$parent !== void 0 && _existing$parent.nodes)) throw new Error("something went wrong in recFind()");
         operations.push({
           kind: "move",
-          node: existing,
-          srcNodes: dst.nodes,
+          node: existing.node,
+          srcNodes: existing.parent.nodes,
           dstNodes: dst.nodes,
           index: i + skip
         });
