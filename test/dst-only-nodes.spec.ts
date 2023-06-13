@@ -1,6 +1,6 @@
 import diffpatch from "../src";
 import { Module } from "../src/types";
-import { hide, move } from "../src/utils";
+import { dump, hide, move } from "../src/utils";
 
 describe("tree edit diff", () => {
   let next: () => number;
@@ -187,20 +187,61 @@ describe("tree edit diff", () => {
         src.nodes.at(0)?.nodes?.at(0),
         src.nodes.at(0)?.nodes,
         src.nodes.at(0)?.nodes,
-        1,
+        1
       );
 
       diffpatch(src, dst);
 
-      expect(
-        dst.nodes.at(0)?.nodes?.at(0)?.ref,
-      ).toEqual(
-        src.nodes.at(0)?.nodes?.at(0)?.id,
+      expect(dst.nodes.at(0)?.nodes?.at(0)?.ref).toEqual(
+        src.nodes.at(0)?.nodes?.at(0)?.id
       );
-      expect(
-        dst.nodes.at(0)?.nodes?.at(1)?.ref,
-      ).toEqual(
-        src.nodes.at(0)?.nodes?.at(1)?.id,
+      expect(dst.nodes.at(0)?.nodes?.at(1)?.ref).toEqual(
+        src.nodes.at(0)?.nodes?.at(1)?.id
+      );
+    });
+
+    /**
+     * t0:
+     *   0(1(2, 3))
+     *   4(1'(2', 3'))
+     *
+     * t1:
+     *   0(2, 1(3))
+     *   4(2', 1'(3'))
+     */
+    it("move to ancestor", () => {
+      const src: Module = {
+        id: next(),
+        nodes: [{ id: next(), nodes: [{ id: next() }, { id: next() }] }],
+      };
+      const dst: Module = {
+        id: next(),
+        nodes: [
+          {
+            id: next(),
+            ref: src.nodes[0].id,
+            nodes: [
+              { id: next(), ref: src.nodes.at(0)?.nodes?.at(0)?.id },
+              { id: next(), ref: src.nodes.at(0)?.nodes?.at(1)?.id },
+            ],
+          },
+        ],
+      };
+
+      move(
+        // @ts-expect-error
+        src.nodes.at(0)?.nodes?.at(0),
+        src.nodes.at(0)?.nodes,
+        src.nodes,
+        0
+      );
+
+      diffpatch(src, dst);
+
+      expect(dst.nodes.at(0)?.ref).toEqual(src.nodes.at(0)?.id);
+      expect(dst.nodes.at(1)?.ref).toEqual(src.nodes.at(1)?.id);
+      expect(dst.nodes.at(1)?.nodes?.at(0)?.ref).toEqual(
+        src.nodes.at(1)?.nodes?.at(0)?.id
       );
     });
   });

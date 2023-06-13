@@ -35,10 +35,13 @@ export function internalDiff(
           index: i + skip - 1,
         });
       } else {
+        if (!existing.parent?.nodes)
+          throw new Error(`something went wrong in recFind()`);
+
         operations.push({
           kind: "move",
-          node: existing as MaterialNode,
-          srcNodes: dst.nodes,
+          node: existing.node,
+          srcNodes: existing.parent.nodes,
           dstNodes: dst.nodes,
           index: i + skip,
         });
