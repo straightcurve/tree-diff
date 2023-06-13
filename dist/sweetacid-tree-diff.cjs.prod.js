@@ -153,6 +153,7 @@ function internalDiff(src, dst) {
           dstNodes: dst.nodes,
           index: i + skip
         });
+        operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, existing.node, dstRoot)));
       }
       return "continue";
     }

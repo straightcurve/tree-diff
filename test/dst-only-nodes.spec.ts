@@ -243,6 +243,58 @@ describe("tree edit diff", () => {
       expect(dst.nodes.at(1)?.nodes?.at(0)?.ref).toEqual(
         src.nodes.at(1)?.nodes?.at(0)?.id
       );
+      expect(dst.nodes.length).toEqual(src.nodes.length);
+      expect(dst.nodes.at(1)?.nodes?.length).toEqual(
+        src.nodes.at(1)?.nodes?.length
+      );
+    });
+
+    /**
+     * t0:
+     *   0(1, 2(3))
+     *   4(1', 2'(3'))
+     *
+     * t1:
+     *   0(2(1, 3))
+     *   4(2'(1', 3'))
+     */
+    it("move to child", () => {
+      const src: Module = {
+        id: next(),
+        nodes: [{ id: next() }, { id: next(), nodes: [{ id: next() }] }],
+      };
+      const dst: Module = {
+        id: next(),
+        nodes: [
+          { id: next(), ref: src.nodes[0].id },
+          {
+            id: next(),
+            ref: src.nodes[1].id,
+            nodes: [{ id: next(), ref: src.nodes.at(1)?.nodes?.at(0)?.id }],
+          },
+        ],
+      };
+
+      console.log(dump(src, "t0:src: "));
+      console.log(dump(dst, "t0:dst: "));
+
+      move(
+        // @ts-expect-error
+        src.nodes.at(0),
+        src.nodes,
+        src.nodes.at(1)?.nodes,
+        0
+      );
+
+      diffpatch(src, dst);
+
+      expect(dst.nodes.at(0)?.ref).toEqual(src.nodes.at(0)?.id);
+      expect(dst.nodes.at(0)?.nodes?.at(0)?.ref).toEqual(
+        src.nodes.at(0)?.nodes?.at(0)?.id
+      );
+      expect(dst.nodes.at(0)?.nodes?.at(1)?.ref).toEqual(
+        src.nodes.at(0)?.nodes?.at(1)?.id
+      );
     });
   });
 });

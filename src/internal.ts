@@ -45,6 +45,8 @@ export function internalDiff(
           dstNodes: dst.nodes,
           index: i + skip,
         });
+
+        operations.push(...internalDiff(srcNode, existing.node, dstRoot));
       }
 
       continue;
