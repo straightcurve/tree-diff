@@ -1,4 +1,4 @@
-import diffpatch from "../src";
+import diffpatch, { diff, patch } from "../src";
 import { Module } from "../src/types";
 import { dump, hide, move } from "../src/utils";
 
@@ -153,6 +153,26 @@ describe("tree edit diff", () => {
     expect(dst.nodes[3].ref).toEqual(src.nodes[2].id);
   });
 
+  it("add in the middle", () => {
+    const src: Module = { id: next(), nodes: [{ id: next() }, { id: next() }] };
+    const dst: Module = {
+      id: next(),
+      nodes: [
+        { id: next(), ref: src.nodes[0].id },
+        { id: next() },
+        { id: next(), ref: src.nodes[1].id },
+      ],
+    };
+
+    src.nodes.splice(1, 0, { id: next() });
+
+    diffpatch(src, dst);
+
+    expect(dst.nodes[0].ref).toEqual(src.nodes[0].id);
+    expect(dst.nodes[2].ref).toEqual(src.nodes[1].id);
+    expect(dst.nodes[3].ref).toEqual(src.nodes[2].id);
+  });
+
   /**
    * t0:
    *   0(1(2, 3))
@@ -274,9 +294,6 @@ describe("tree edit diff", () => {
           },
         ],
       };
-
-      console.log(dump(src, "t0:src: "));
-      console.log(dump(dst, "t0:dst: "));
 
       move(
         // @ts-expect-error

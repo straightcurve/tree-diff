@@ -11,15 +11,20 @@ export function internalDiff(
   if (!src.nodes) return operations;
   if (!dst.nodes) return operations;
 
+  /** basically a counter for dst nodes */
   let skip = 0;
+
+  /** ignore amount starting from beginning due to add operations changing order */
+  let ignore = 0;
+
   for (let i = 0; i < src.nodes.length; i++) {
     const srcNode = src.nodes[i];
 
     let dstNode!: MaterialNode;
     let found = false;
     let hasRef = false;
-    while (!hasRef && !found && i + skip < dst.nodes.length) {
-      dstNode = dst.nodes[i + skip];
+    while (!hasRef && !found && i + skip - ignore < dst.nodes.length) {
+      dstNode = dst.nodes[i + skip - ignore];
       found = srcNode.id === dstNode.ref;
       hasRef = !!dstNode.ref;
       if (!hasRef) skip++;
@@ -32,8 +37,10 @@ export function internalDiff(
           kind: "add",
           node: srcNode,
           dstNodes: dst.nodes,
-          index: i + skip - 1,
+          index: i + skip,
         });
+
+        ignore++;
       } else {
         if (!existing.parent?.nodes)
           throw new Error(`something went wrong in recFind()`);
@@ -77,7 +84,7 @@ export function internalPatch(operations: TreeOperation[]) {
         break;
       }
       case "add": {
-        throw new Error("@todo");
+        op.dstNodes.splice(op.index, 0, { ...op.node, ref: op.node.id });
       }
     }
   }
