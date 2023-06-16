@@ -2,6 +2,59 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+function _toPrimitive(input, hint) {
+  if (typeof input !== "object" || input === null) return input;
+  var prim = input[Symbol.toPrimitive];
+  if (prim !== undefined) {
+    var res = prim.call(input, hint || "default");
+    if (typeof res !== "object") return res;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (hint === "string" ? String : Number)(input);
+}
+
+function _toPropertyKey(arg) {
+  var key = _toPrimitive(arg, "string");
+  return typeof key === "symbol" ? key : String(key);
+}
+
+function _defineProperty(obj, key, value) {
+  key = _toPropertyKey(key);
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+
+function ownKeys(object, enumerableOnly) {
+  var keys = Object.keys(object);
+  if (Object.getOwnPropertySymbols) {
+    var symbols = Object.getOwnPropertySymbols(object);
+    enumerableOnly && (symbols = symbols.filter(function (sym) {
+      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
+    })), keys.push.apply(keys, symbols);
+  }
+  return keys;
+}
+function _objectSpread2(target) {
+  for (var i = 1; i < arguments.length; i++) {
+    var source = null != arguments[i] ? arguments[i] : {};
+    i % 2 ? ownKeys(Object(source), !0).forEach(function (key) {
+      _defineProperty(target, key, source[key]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) {
+      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+    });
+  }
+  return target;
+}
+
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
   for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
@@ -120,14 +173,19 @@ function internalDiff(src, dst) {
   var operations = [];
   if (!src.nodes) return operations;
   if (!dst.nodes) return operations;
+
+  /** basically a counter for dst nodes */
   var skip = 0;
+
+  /** ignore amount starting from beginning due to add operations changing order */
+  var ignore = 0;
   var _loop = function _loop() {
     var srcNode = src.nodes[i];
     var dstNode;
     var found = false;
     var hasRef = false;
-    while (!hasRef && !found && i + skip < dst.nodes.length) {
-      dstNode = dst.nodes[i + skip];
+    while (!hasRef && !found && i + skip - ignore < dst.nodes.length) {
+      dstNode = dst.nodes[i + skip - ignore];
       found = srcNode.id === dstNode.ref;
       hasRef = !!dstNode.ref;
       if (!hasRef) skip++;
@@ -141,8 +199,9 @@ function internalDiff(src, dst) {
           kind: "add",
           node: srcNode,
           dstNodes: dst.nodes,
-          index: i + skip - 1
+          index: i + skip
         });
+        ignore++;
       } else {
         var _existing$parent;
         if (!((_existing$parent = existing.parent) !== null && _existing$parent !== void 0 && _existing$parent.nodes)) throw new Error("something went wrong in recFind()");
@@ -191,7 +250,9 @@ function internalPatch(operations) {
           }
         case "add":
           {
-            throw new Error("@todo");
+            op.dstNodes.splice(op.index, 0, _objectSpread2(_objectSpread2({}, op.node), {}, {
+              ref: op.node.id
+            }));
           }
       }
     }
