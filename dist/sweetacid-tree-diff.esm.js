@@ -246,8 +246,10 @@ function internalPatch(operations) {
           }
         case "add":
           {
+            var _op$newId;
             op.dstNodes.splice(op.index, 0, _objectSpread2(_objectSpread2({}, op.node), {}, {
-              ref: op.node.id
+              ref: op.node.id,
+              id: (_op$newId = op.newId) !== null && _op$newId !== void 0 ? _op$newId : op.node.id
             }));
           }
       }

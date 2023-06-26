@@ -27,6 +27,7 @@ export type AddOperation = {
   node: MaterialNode;
   dstNodes: MaterialNode[];
   index: number;
+  newId?: number;
 };
 
 export type TreeOperation = AddOperation | MoveOperation | HideOperation;

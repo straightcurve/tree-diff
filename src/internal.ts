@@ -84,7 +84,11 @@ export function internalPatch(operations: TreeOperation[]) {
         break;
       }
       case "add": {
-        op.dstNodes.splice(op.index, 0, { ...op.node, ref: op.node.id });
+        op.dstNodes.splice(op.index, 0, {
+          ...op.node,
+          ref: op.node.id,
+          id: op.newId ?? op.node.id,
+        });
       }
     }
   }

@@ -2,7 +2,7 @@ import diffpatch, { diff, patch } from "../src";
 import { Module } from "../src/types";
 import { dump, hide, move } from "../src/utils";
 
-describe("tree edit diff", () => {
+describe("tree diff", () => {
   let next: () => number;
 
   beforeEach(() => {
