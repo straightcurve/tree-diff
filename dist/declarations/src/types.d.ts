@@ -26,3 +26,10 @@ export type AddOperation = {
     newId?: number;
 };
 export type TreeOperation = AddOperation | MoveOperation | HideOperation;
+export type DiffOptions = {
+    /**
+     * @description ignores the `hidden` property on nodes
+     * @default false
+     */
+    ignoreHidden?: boolean;
+};

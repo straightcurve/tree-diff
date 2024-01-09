@@ -29,26 +29,26 @@ function _defineProperty(obj, key, value) {
   return obj;
 }
 
-function ownKeys(object, enumerableOnly) {
-  var keys = Object.keys(object);
+function ownKeys(e, r) {
+  var t = Object.keys(e);
   if (Object.getOwnPropertySymbols) {
-    var symbols = Object.getOwnPropertySymbols(object);
-    enumerableOnly && (symbols = symbols.filter(function (sym) {
-      return Object.getOwnPropertyDescriptor(object, sym).enumerable;
-    })), keys.push.apply(keys, symbols);
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
   }
-  return keys;
+  return t;
 }
-function _objectSpread2(target) {
-  for (var i = 1; i < arguments.length; i++) {
-    var source = null != arguments[i] ? arguments[i] : {};
-    i % 2 ? ownKeys(Object(source), !0).forEach(function (key) {
-      _defineProperty(target, key, source[key]);
-    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)) : ownKeys(Object(source)).forEach(function (key) {
-      Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key));
+function _objectSpread2(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      _defineProperty(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
     });
   }
-  return target;
+  return e;
 }
 
 function _arrayLikeToArray(arr, len) {
@@ -166,25 +166,29 @@ function recFind(root, predicate, parent) {
 
 function internalDiff(src, dst) {
   var dstRoot = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : dst;
+  var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
+      ignoreHidden: false
+    },
+    ignoreHidden = _ref.ignoreHidden;
   var operations = [];
   if (!src.nodes) return operations;
   if (!dst.nodes) return operations;
 
   /** basically a counter for dst nodes */
-  var skip = 0;
+  var skipCount = 0;
 
   /** ignore amount starting from beginning due to add operations changing order */
-  var ignore = 0;
+  var ignoreCount = 0;
   var _loop = function _loop() {
     var srcNode = src.nodes[i];
     var dstNode;
     var found = false;
     var hasRef = false;
-    while (!hasRef && !found && i + skip - ignore < dst.nodes.length) {
-      dstNode = dst.nodes[i + skip - ignore];
+    while (!hasRef && !found && i + skipCount - ignoreCount < dst.nodes.length) {
+      dstNode = dst.nodes[i + skipCount - ignoreCount];
       found = srcNode.id === dstNode.ref;
       hasRef = !!dstNode.ref;
-      if (!hasRef) skip++;
+      if (!hasRef) skipCount++;
     }
     if (!found) {
       var existing = recFind(dstRoot, function (n) {
@@ -195,9 +199,9 @@ function internalDiff(src, dst) {
           kind: "add",
           node: srcNode,
           dstNodes: dst.nodes,
-          index: i + skip
+          index: i + skipCount
         });
-        ignore++;
+        ignoreCount++;
       } else {
         var _existing$parent;
         if (!((_existing$parent = existing.parent) !== null && _existing$parent !== void 0 && _existing$parent.nodes)) throw new Error("something went wrong in recFind()");
@@ -206,13 +210,13 @@ function internalDiff(src, dst) {
           node: existing.node,
           srcNodes: existing.parent.nodes,
           dstNodes: dst.nodes,
-          index: i + skip
+          index: i + skipCount
         });
         operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, existing.node, dstRoot)));
       }
-      return "continue";
+      return 1; // continue
     }
-    if (srcNode.hidden) {
+    if (!ignoreHidden && srcNode.hidden) {
       operations.push({
         kind: "hide",
         node: dstNode
@@ -222,8 +226,7 @@ function internalDiff(src, dst) {
     }
   };
   for (var i = 0; i < src.nodes.length; i++) {
-    var _ret = _loop();
-    if (_ret === "continue") continue;
+    if (_loop()) continue;
   }
   return operations;
 }
@@ -261,11 +264,11 @@ function internalPatch(operations) {
   }
 }
 
-function diffpatch(src, dst) {
-  internalPatch(internalDiff(src, dst));
+function diffpatch(src, dst, diffOpts) {
+  internalPatch(internalDiff(src, dst, dst, diffOpts));
 }
-function diff(src, dst) {
-  return internalDiff(src, dst);
+function diff(src, dst, diffOpts) {
+  return internalDiff(src, dst, dst, diffOpts);
 }
 function patch(operations) {
   return internalPatch(operations);
