@@ -1,10 +1,11 @@
-import { MaterialNode, TreeOperation } from "./types";
+import { MaterialNode, DiffOptions, TreeOperation } from "./types";
 import { hide, move, recFind } from "./utils";
 
 export function internalDiff(
   src: MaterialNode,
   dst: MaterialNode,
-  dstRoot: MaterialNode = dst
+  dstRoot: MaterialNode = dst,
+  { ignoreHidden }: DiffOptions = { ignoreHidden: false },
 ): TreeOperation[] {
   const operations: TreeOperation[] = [];
 
@@ -59,7 +60,7 @@ export function internalDiff(
       continue;
     }
 
-    if (srcNode.hidden) {
+    if (!ignoreHidden && srcNode.hidden) {
       operations.push({
         kind: "hide",
         node: dstNode,
