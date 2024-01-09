@@ -13,10 +13,10 @@ export function internalDiff(
   if (!dst.nodes) return operations;
 
   /** basically a counter for dst nodes */
-  let skip = 0;
+  let skipCount = 0;
 
   /** ignore amount starting from beginning due to add operations changing order */
-  let ignore = 0;
+  let ignoreCount = 0;
 
   for (let i = 0; i < src.nodes.length; i++) {
     const srcNode = src.nodes[i];
@@ -24,11 +24,11 @@ export function internalDiff(
     let dstNode!: MaterialNode;
     let found = false;
     let hasRef = false;
-    while (!hasRef && !found && i + skip - ignore < dst.nodes.length) {
-      dstNode = dst.nodes[i + skip - ignore];
+    while (!hasRef && !found && i + skipCount - ignoreCount < dst.nodes.length) {
+      dstNode = dst.nodes[i + skipCount - ignoreCount];
       found = srcNode.id === dstNode.ref;
       hasRef = !!dstNode.ref;
-      if (!hasRef) skip++;
+      if (!hasRef) skipCount++;
     }
 
     if (!found) {
@@ -38,10 +38,10 @@ export function internalDiff(
           kind: "add",
           node: srcNode,
           dstNodes: dst.nodes,
-          index: i + skip,
+          index: i + skipCount,
         });
 
-        ignore++;
+        ignoreCount++;
       } else {
         if (!existing.parent?.nodes)
           throw new Error(`something went wrong in recFind()`);
@@ -51,7 +51,7 @@ export function internalDiff(
           node: existing.node,
           srcNodes: existing.parent.nodes,
           dstNodes: dst.nodes,
-          index: i + skip,
+          index: i + skipCount,
         });
 
         operations.push(...internalDiff(srcNode, existing.node, dstRoot));
