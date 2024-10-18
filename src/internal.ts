@@ -35,8 +35,20 @@ export function internalDiff(
     ) {
       dstNode = dst.nodes[i + skipCount - ignoreCount];
       found = srcNode.id === dstNode.ref;
-      hasRef = !!dstNode.ref;
-      if (!hasRef) skipCount++;
+
+      if (!!dstNode.ref) {
+        //  if dstNode is ref'd from another tree, skip it
+        const existing = recFind(src, (n) => n.id === dstNode.ref);
+        if (!existing) {
+          hasRef = false;
+          skipCount++;
+        } else {
+          hasRef = true;
+        }
+      } else {
+        hasRef = false;
+        skipCount++;
+      }
     }
 
     if (!found) {

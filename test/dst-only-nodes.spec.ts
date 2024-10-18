@@ -13,6 +13,23 @@ describe("tree diff", () => {
     })();
   });
 
+  it("no change ref from other tree", () => {
+    const src: Module = { id: 0, nodes: [{ id: 1 }, { id: 2 }] };
+    const dst: Module = {
+      id: 100,
+      nodes: [
+        { id: 101, ref: 1 },
+        { id: 12327463, ref: 12334545454 },
+        { id: 102, ref: 2 },
+      ],
+    };
+
+    diffpatch(src, dst);
+
+    expect(dst.nodes[0].ref).toEqual(1);
+    expect(dst.nodes[2].ref).toEqual(2);
+  });
+
   /**
    * t0:
    *   0(1, 2)

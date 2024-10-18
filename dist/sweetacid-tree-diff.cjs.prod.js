@@ -193,14 +193,27 @@ function internalDiff(src, dst) {
     while (!hasRef && !found && i + skipCount - ignoreCount < dst.nodes.length) {
       dstNode = dst.nodes[i + skipCount - ignoreCount];
       found = srcNode.id === dstNode.ref;
-      hasRef = !!dstNode.ref;
-      if (!hasRef) skipCount++;
+      if (!!dstNode.ref) {
+        //  if dstNode is ref'd from another tree, skip it
+        var existing = recFind(src, function (n) {
+          return n.id === dstNode.ref;
+        });
+        if (!existing) {
+          hasRef = false;
+          skipCount++;
+        } else {
+          hasRef = true;
+        }
+      } else {
+        hasRef = false;
+        skipCount++;
+      }
     }
     if (!found) {
-      var existing = recFind(dstRoot, function (n) {
+      var _existing = recFind(dstRoot, function (n) {
         return n.ref === srcNode.id;
       });
-      if (!existing) {
+      if (!_existing) {
         operations.push({
           kind: "add",
           node: srcNode,
@@ -210,12 +223,12 @@ function internalDiff(src, dst) {
         ignoreCount++;
       } else {
         var _existing$parent;
-        if (!((_existing$parent = existing.parent) !== null && _existing$parent !== void 0 && _existing$parent.nodes)) throw new Error("something went wrong in recFind()");
-        dstNode = existing.node;
+        if (!((_existing$parent = _existing.parent) !== null && _existing$parent !== void 0 && _existing$parent.nodes)) throw new Error("something went wrong in recFind()");
+        dstNode = _existing.node;
         operations.push({
           kind: "move",
           node: dstNode,
-          srcNodes: existing.parent.nodes,
+          srcNodes: _existing.parent.nodes,
           dstNodes: dst.nodes,
           index: i + skipCount
         });
