@@ -1,6 +1,6 @@
 {
   "name": "@sweetacid/tree-diff",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "diff but for trees",
   "main": "dist/sweetacid-tree-diff.cjs.js",
   "module": "dist/sweetacid-tree-diff.esm.js",
