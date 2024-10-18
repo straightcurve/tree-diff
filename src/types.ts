@@ -22,6 +22,11 @@ export type HideOperation = {
   node: MaterialNode;
 };
 
+export type ExposeOperation = {
+  kind: "expose";
+  node: MaterialNode;
+};
+
 export type AddOperation = {
   kind: "add";
   node: MaterialNode;
@@ -30,7 +35,11 @@ export type AddOperation = {
   newId?: number;
 };
 
-export type TreeOperation = AddOperation | MoveOperation | HideOperation;
+export type TreeOperation =
+  | AddOperation
+  | MoveOperation
+  | HideOperation
+  | ExposeOperation;
 
 export type DiffOptions = {
   /**

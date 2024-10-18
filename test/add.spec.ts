@@ -57,7 +57,6 @@ describe("tree diff", () => {
       patch(patches);
 
       expect(dst.nodes[0].id).toEqual(4);
-      expect(dst.nodes[0].hidden).toBeTruthy();
       expect(dst.nodes.length).toEqual(3);
     });
   });

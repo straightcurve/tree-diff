@@ -1,5 +1,5 @@
 import { MaterialNode, DiffOptions, TreeOperation } from "./types";
-import { hide, move, recFind } from "./utils";
+import { expose, hide, move, recFind } from "./utils";
 
 export function internalDiff(
   src: MaterialNode,
@@ -88,6 +88,13 @@ export function internalDiff(
               forceHide: true,
             })
           );
+        } else if (!ignoreHidden && !srcNode.hidden && dstNode.hidden) {
+          operations.push({
+            kind: "expose",
+            node: dstNode,
+          });
+
+          operations.push(...internalDiff(srcNode, dstNode, dstRoot, options));
         } else {
           operations.push(...internalDiff(srcNode, dstNode, dstRoot, options));
         }
@@ -108,6 +115,13 @@ export function internalDiff(
           forceHide: true,
         })
       );
+    } else if (!ignoreHidden && !srcNode.hidden && dstNode?.hidden) {
+      operations.push({
+        kind: "expose",
+        node: dstNode,
+      });
+
+      operations.push(...internalDiff(srcNode, dstNode, dstRoot, options));
     } else {
       operations.push(...internalDiff(srcNode, dstNode, dstRoot, options));
     }
@@ -128,6 +142,10 @@ export function internalPatch(
       }
       case "hide": {
         hide(op.node);
+        break;
+      }
+      case "expose": {
+        expose(op.node);
         break;
       }
       case "add": {

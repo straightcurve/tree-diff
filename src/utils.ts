@@ -10,6 +10,10 @@ export function move(
   dstNodes.splice(index, 0, node);
 }
 
+export function expose(node: MaterialNode) {
+  node.hidden = false;
+}
+
 export function hide(node: MaterialNode) {
   node.hidden = true;
 }

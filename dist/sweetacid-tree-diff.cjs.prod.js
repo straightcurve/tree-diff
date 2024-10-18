@@ -142,6 +142,9 @@ function move(node, srcNodes, dstNodes, index) {
   srcNodes.splice(srcNodes.indexOf(node), 1);
   dstNodes.splice(index, 0, node);
 }
+function expose(node) {
+  node.hidden = false;
+}
 function hide(node) {
   node.hidden = true;
 }
@@ -186,6 +189,7 @@ function internalDiff(src, dst) {
   /** ignore amount starting from beginning due to add operations changing order */
   var ignoreCount = 0;
   var _loop = function _loop() {
+    var _dstNode;
     var srcNode = src.nodes[i];
     var dstNode;
     var found = false;
@@ -240,6 +244,12 @@ function internalDiff(src, dst) {
           operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, _objectSpread2(_objectSpread2({}, options), {}, {
             forceHide: true
           }))));
+        } else if (!ignoreHidden && !srcNode.hidden && dstNode.hidden) {
+          operations.push({
+            kind: "expose",
+            node: dstNode
+          });
+          operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, options)));
         } else {
           operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, options)));
         }
@@ -254,6 +264,12 @@ function internalDiff(src, dst) {
       operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, _objectSpread2(_objectSpread2({}, options), {}, {
         forceHide: true
       }))));
+    } else if (!ignoreHidden && !srcNode.hidden && (_dstNode = dstNode) !== null && _dstNode !== void 0 && _dstNode.hidden) {
+      operations.push({
+        kind: "expose",
+        node: dstNode
+      });
+      operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, options)));
     } else {
       operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, options)));
     }
@@ -282,6 +298,11 @@ function internalPatch(operations) {
         case "hide":
           {
             hide(op.node);
+            break;
+          }
+        case "expose":
+          {
+            expose(op.node);
             break;
           }
         case "add":
