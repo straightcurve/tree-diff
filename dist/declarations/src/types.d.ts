@@ -32,4 +32,9 @@ export type DiffOptions = {
      * @default false
      */
     ignoreHidden?: boolean;
+    /**
+     * @description treats this node and its children as hidden (basically hides them)
+     * @default false
+     */
+    forceHide?: boolean;
 };

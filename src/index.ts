@@ -4,17 +4,17 @@ import { DiffOptions, MaterialNode, TreeOperation } from "./types";
 export default function diffpatch(
   src: MaterialNode,
   dst: MaterialNode,
-  diffOpts?: DiffOptions,
+  options?: DiffOptions
 ) {
-  internalPatch(internalDiff(src, dst, dst, diffOpts));
+  internalPatch(internalDiff(src, dst, dst, options), options);
 }
 
 export function diff(
   src: MaterialNode,
   dst: MaterialNode,
-  diffOpts?: DiffOptions,
+  options?: DiffOptions
 ) {
-  return internalDiff(src, dst, dst, diffOpts);
+  return internalDiff(src, dst, dst, options);
 }
 
 export function patch(operations: TreeOperation[]) {
