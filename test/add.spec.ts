@@ -31,9 +31,8 @@ describe("tree diff", () => {
       src.nodes.push({ id: next() });
 
       const patches = diff(src, dst);
-      patches.filter(
-        (p): p is AddOperation => p.kind === "add",
-      )[0].newId = 1337;
+      patches.filter((p): p is AddOperation => p.kind === "add")[0].newId =
+        1337;
 
       patch(patches);
 

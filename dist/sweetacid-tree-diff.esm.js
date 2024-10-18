@@ -1,56 +1,3 @@
-function _toPrimitive(input, hint) {
-  if (typeof input !== "object" || input === null) return input;
-  var prim = input[Symbol.toPrimitive];
-  if (prim !== undefined) {
-    var res = prim.call(input, hint || "default");
-    if (typeof res !== "object") return res;
-    throw new TypeError("@@toPrimitive must return a primitive value.");
-  }
-  return (hint === "string" ? String : Number)(input);
-}
-
-function _toPropertyKey(arg) {
-  var key = _toPrimitive(arg, "string");
-  return typeof key === "symbol" ? key : String(key);
-}
-
-function _defineProperty(obj, key, value) {
-  key = _toPropertyKey(key);
-  if (key in obj) {
-    Object.defineProperty(obj, key, {
-      value: value,
-      enumerable: true,
-      configurable: true,
-      writable: true
-    });
-  } else {
-    obj[key] = value;
-  }
-  return obj;
-}
-
-function ownKeys(e, r) {
-  var t = Object.keys(e);
-  if (Object.getOwnPropertySymbols) {
-    var o = Object.getOwnPropertySymbols(e);
-    r && (o = o.filter(function (r) {
-      return Object.getOwnPropertyDescriptor(e, r).enumerable;
-    })), t.push.apply(t, o);
-  }
-  return t;
-}
-function _objectSpread2(e) {
-  for (var r = 1; r < arguments.length; r++) {
-    var t = null != arguments[r] ? arguments[r] : {};
-    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
-      _defineProperty(e, r, t[r]);
-    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
-      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
-    });
-  }
-  return e;
-}
-
 function _arrayLikeToArray(arr, len) {
   if (len == null || len > arr.length) len = arr.length;
   for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
@@ -118,6 +65,59 @@ function _createForOfIteratorHelper(o, allowArrayLike) {
   };
 }
 
+function _toPrimitive(input, hint) {
+  if (typeof input !== "object" || input === null) return input;
+  var prim = input[Symbol.toPrimitive];
+  if (prim !== undefined) {
+    var res = prim.call(input, hint || "default");
+    if (typeof res !== "object") return res;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return (hint === "string" ? String : Number)(input);
+}
+
+function _toPropertyKey(arg) {
+  var key = _toPrimitive(arg, "string");
+  return typeof key === "symbol" ? key : String(key);
+}
+
+function _defineProperty(obj, key, value) {
+  key = _toPropertyKey(key);
+  if (key in obj) {
+    Object.defineProperty(obj, key, {
+      value: value,
+      enumerable: true,
+      configurable: true,
+      writable: true
+    });
+  } else {
+    obj[key] = value;
+  }
+  return obj;
+}
+
+function ownKeys(e, r) {
+  var t = Object.keys(e);
+  if (Object.getOwnPropertySymbols) {
+    var o = Object.getOwnPropertySymbols(e);
+    r && (o = o.filter(function (r) {
+      return Object.getOwnPropertyDescriptor(e, r).enumerable;
+    })), t.push.apply(t, o);
+  }
+  return t;
+}
+function _objectSpread2(e) {
+  for (var r = 1; r < arguments.length; r++) {
+    var t = null != arguments[r] ? arguments[r] : {};
+    r % 2 ? ownKeys(Object(t), !0).forEach(function (r) {
+      _defineProperty(e, r, t[r]);
+    }) : Object.getOwnPropertyDescriptors ? Object.defineProperties(e, Object.getOwnPropertyDescriptors(t)) : ownKeys(Object(t)).forEach(function (r) {
+      Object.defineProperty(e, r, Object.getOwnPropertyDescriptor(t, r));
+    });
+  }
+  return e;
+}
+
 function _arrayWithoutHoles(arr) {
   if (Array.isArray(arr)) return _arrayLikeToArray(arr);
 }
@@ -166,10 +166,12 @@ function recFind(root, predicate, parent) {
 
 function internalDiff(src, dst) {
   var dstRoot = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : dst;
-  var _ref = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
-      ignoreHidden: false
-    },
-    ignoreHidden = _ref.ignoreHidden;
+  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {
+    ignoreHidden: false,
+    forceHide: false
+  };
+  var ignoreHidden = options.ignoreHidden,
+    forceHide = options.forceHide;
   var operations = [];
   if (!src.nodes) return operations;
   if (!dst.nodes) return operations;
@@ -205,24 +207,38 @@ function internalDiff(src, dst) {
       } else {
         var _existing$parent;
         if (!((_existing$parent = existing.parent) !== null && _existing$parent !== void 0 && _existing$parent.nodes)) throw new Error("something went wrong in recFind()");
+        dstNode = existing.node;
         operations.push({
           kind: "move",
-          node: existing.node,
+          node: dstNode,
           srcNodes: existing.parent.nodes,
           dstNodes: dst.nodes,
           index: i + skipCount
         });
-        operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, existing.node, dstRoot)));
+        if (forceHide || !ignoreHidden && srcNode.hidden) {
+          operations.push({
+            kind: "hide",
+            node: dstNode
+          });
+          operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, _objectSpread2(_objectSpread2({}, options), {}, {
+            forceHide: true
+          }))));
+        } else {
+          operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, options)));
+        }
       }
       return 1; // continue
     }
-    if (!ignoreHidden && srcNode.hidden) {
+    if (forceHide || !ignoreHidden && srcNode.hidden) {
       operations.push({
         kind: "hide",
         node: dstNode
       });
+      operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, _objectSpread2(_objectSpread2({}, options), {}, {
+        forceHide: true
+      }))));
     } else {
-      operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot)));
+      operations.push.apply(operations, _toConsumableArray(internalDiff(srcNode, dstNode, dstRoot, options)));
     }
   };
   for (var i = 0; i < src.nodes.length; i++) {
@@ -231,6 +247,10 @@ function internalDiff(src, dst) {
   return operations;
 }
 function internalPatch(operations) {
+  var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {
+      ignoreHidden: true
+    },
+    ignoreHidden = _ref.ignoreHidden;
   var _iterator = _createForOfIteratorHelper(operations),
     _step;
   try {
@@ -252,7 +272,8 @@ function internalPatch(operations) {
             var _op$newId;
             op.dstNodes.splice(op.index, 0, _objectSpread2(_objectSpread2({}, op.node), {}, {
               ref: op.node.id,
-              id: (_op$newId = op.newId) !== null && _op$newId !== void 0 ? _op$newId : op.node.id
+              id: (_op$newId = op.newId) !== null && _op$newId !== void 0 ? _op$newId : op.node.id,
+              hidden: ignoreHidden ? false : op.node.hidden
             }));
           }
       }
@@ -264,11 +285,11 @@ function internalPatch(operations) {
   }
 }
 
-function diffpatch(src, dst, diffOpts) {
-  internalPatch(internalDiff(src, dst, dst, diffOpts));
+function diffpatch(src, dst, options) {
+  internalPatch(internalDiff(src, dst, dst, options), options);
 }
-function diff(src, dst, diffOpts) {
-  return internalDiff(src, dst, dst, diffOpts);
+function diff(src, dst, options) {
+  return internalDiff(src, dst, dst, options);
 }
 function patch(operations) {
   return internalPatch(operations);

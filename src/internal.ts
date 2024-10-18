@@ -5,8 +5,12 @@ export function internalDiff(
   src: MaterialNode,
   dst: MaterialNode,
   dstRoot: MaterialNode = dst,
-  { ignoreHidden }: DiffOptions = { ignoreHidden: false },
+  options: DiffOptions = {
+    ignoreHidden: false,
+    forceHide: false,
+  }
 ): TreeOperation[] {
+  const { ignoreHidden, forceHide } = options;
   const operations: TreeOperation[] = [];
 
   if (!src.nodes) return operations;
@@ -24,7 +28,11 @@ export function internalDiff(
     let dstNode!: MaterialNode;
     let found = false;
     let hasRef = false;
-    while (!hasRef && !found && i + skipCount - ignoreCount < dst.nodes.length) {
+    while (
+      !hasRef &&
+      !found &&
+      i + skipCount - ignoreCount < dst.nodes.length
+    ) {
       dstNode = dst.nodes[i + skipCount - ignoreCount];
       found = srcNode.id === dstNode.ref;
       hasRef = !!dstNode.ref;
@@ -46,34 +54,60 @@ export function internalDiff(
         if (!existing.parent?.nodes)
           throw new Error(`something went wrong in recFind()`);
 
+        dstNode = existing.node;
+
         operations.push({
           kind: "move",
-          node: existing.node,
+          node: dstNode,
           srcNodes: existing.parent.nodes,
           dstNodes: dst.nodes,
           index: i + skipCount,
         });
 
-        operations.push(...internalDiff(srcNode, existing.node, dstRoot));
+        if (forceHide || (!ignoreHidden && srcNode.hidden)) {
+          operations.push({
+            kind: "hide",
+            node: dstNode,
+          });
+
+          operations.push(
+            ...internalDiff(srcNode, dstNode, dstRoot, {
+              ...options,
+              forceHide: true,
+            })
+          );
+        } else {
+          operations.push(...internalDiff(srcNode, dstNode, dstRoot, options));
+        }
       }
 
       continue;
     }
 
-    if (!ignoreHidden && srcNode.hidden) {
+    if (forceHide || (!ignoreHidden && srcNode.hidden)) {
       operations.push({
         kind: "hide",
         node: dstNode,
       });
+
+      operations.push(
+        ...internalDiff(srcNode, dstNode, dstRoot, {
+          ...options,
+          forceHide: true,
+        })
+      );
     } else {
-      operations.push(...internalDiff(srcNode, dstNode, dstRoot));
+      operations.push(...internalDiff(srcNode, dstNode, dstRoot, options));
     }
   }
 
   return operations;
 }
 
-export function internalPatch(operations: TreeOperation[]) {
+export function internalPatch(
+  operations: TreeOperation[],
+  { ignoreHidden }: DiffOptions = { ignoreHidden: true }
+) {
   for (const op of operations) {
     switch (op.kind) {
       case "move": {
@@ -89,6 +123,7 @@ export function internalPatch(operations: TreeOperation[]) {
           ...op.node,
           ref: op.node.id,
           id: op.newId ?? op.node.id,
+          hidden: ignoreHidden ? false : op.node.hidden,
         });
       }
     }
