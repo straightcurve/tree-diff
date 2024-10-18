@@ -9,7 +9,11 @@
     "preconstruct": "preconstruct",
     "build": "npm run preconstruct build",
     "test": "jest",
-    "publish": "npm run build && npm publish --access public"
+    "publish": "npm publish --access public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sweetacid/tree-diff.git"
   },
   "keywords": [],
   "author": "A2 <antoniu.ilea@gmail.com>",
