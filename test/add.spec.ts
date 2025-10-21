@@ -59,5 +59,24 @@ describe("tree diff", () => {
       expect(dst.nodes[0].id).toEqual(4);
       expect(dst.nodes.length).toEqual(3);
     });
+
+    it("should not add node if the src is hidden", () => {
+      const src: Module = {
+        id: next(),
+        nodes: [{ id: next(), hidden: true }, { id: next() }],
+      };
+      const dst: Module = {
+        id: next(),
+        nodes: [
+          { id: next(), ref: src.nodes[1].id },
+        ],
+      };
+
+      const patches = diff(src, dst, { ignoreHidden: false, });
+      patch(patches);
+
+      expect(dst.nodes.length).toEqual(1);
+      expect(dst.nodes[0].id).toEqual(4);
+    });
   });
 });

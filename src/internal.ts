@@ -54,12 +54,14 @@ export function internalDiff(
     if (!found) {
       const existing = recFind(dstRoot, (n) => n.ref === srcNode.id);
       if (!existing) {
-        operations.push({
-          kind: "add",
-          node: srcNode,
-          dstNodes: dst.nodes,
-          index: i + skipCount,
-        });
+        if (ignoreHidden || !srcNode.hidden) {
+          operations.push({
+            kind: "add",
+            node: srcNode,
+            dstNodes: dst.nodes,
+            index: i + skipCount,
+          });  
+        }
 
         ignoreCount++;
       } else {
